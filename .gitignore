@@ -1,0 +1,9 @@
+# python compiled files
+*.pyc
+*.pyo
+
+env/
+.pre-commit-config.yaml
+commit_msg_hook.sh
+
+.DS_Store
