@@ -8,16 +8,15 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import viewsets, serializers
 from rest_framework import permissions, filters
 from rest_framework.pagination import PageNumberPagination
-from Note.permissions.permissions import UserPermission
-from Note.filters.filters import NotesArchiveFilter
+from notes.permissions.permissions import UserPermission
+from notes.filters.filters import NotesArchiveFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
 
-# Create your views here.
 class NotesViewsets(viewsets.ModelViewSet):
     """
-    Viewset for Note model and it is responsible for all the CRUD operations of
-    the Note class.
+    Viewset for notes model and it is responsible for all the CRUD operations of
+    the notes class.
     """
 
     queryset = Note.objects.all()
@@ -32,8 +31,9 @@ class NotesViewsets(viewsets.ModelViewSet):
 
     filter_class = NotesArchiveFilter
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    """
+    TODO: We will move this functionality into filters
+    """
 
     def get_queryset(self):
         user = self.request.user

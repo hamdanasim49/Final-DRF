@@ -1,4 +1,4 @@
-from Note.models import Note
+from notes.models import Note
 from django_filters import FilterSet, BooleanFilter, CharFilter
 
 

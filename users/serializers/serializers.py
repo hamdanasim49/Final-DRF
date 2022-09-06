@@ -32,9 +32,8 @@ class RegisterSerializer(serializers.ModelSerializer):
             "last_name": {"required": True},
         }
 
-    """A method that will validate the data send for user and will add the user"""
-
     def create(self, validated_data):
+        """A method that will validate the data send for user and will add the user"""
         user_obj = User.objects.create(
             email=validated_data["email"],
             first_name=validated_data["first_name"],

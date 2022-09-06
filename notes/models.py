@@ -1,8 +1,13 @@
 from django.db import models
-from User.models import User
+from users.models import User
 
-# Create your models here.
+
 class Note(models.Model):
+    """
+    This class is Notes model which will be the information that we
+    will be storing about notes in our db
+    """
+
     title = models.CharField(max_length=20, default=" ")
     text = models.CharField(max_length=50)
     date_created = models.DateTimeField(auto_now_add=True)
