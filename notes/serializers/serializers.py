@@ -40,20 +40,3 @@ class NoteSerializer(serializers.ModelSerializer):
             user=user, title=title, text=text, **validated_data
         )
         return instance
-
-    def update(self, instance, validated_data):
-        super().update(instance, validated_data)
-
-        """Check if body have shared with in parameter then get the list of users
-        and add it to the shared with of the user"""
-        if "shared_with" in validated_data:
-            shared_with_data = validated_data["shared_with"]
-            if shared_with_data:
-                print(shared_with_data)
-                for user in shared_with_data:
-                    if user.id != instance.user.id:
-                        curUser = User.objects.get(id=user.id)
-                        instance.shared_with.add(curUser.id)
-
-        instance.save()
-        return instance
