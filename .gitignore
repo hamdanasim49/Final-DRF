@@ -7,3 +7,4 @@ env/
 commit_msg_hook.sh
 
 .DS_Store
+.idea/

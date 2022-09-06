@@ -4,18 +4,14 @@ from ..models import Note
 from ..serializers.serializers import (
     NoteSerializer,
 )
-from django.contrib.auth.models import User
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import viewsets, serializers
 from rest_framework import permissions, filters
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.decorators import action
-import json
-from django.core import serializers
-from django.http import HttpResponse
 from Note.permissions.permissions import UserPermission
 from Note.filters.filters import NotesArchiveFilter
 from django_filters.rest_framework import DjangoFilterBackend
+
 
 # Create your views here.
 class NotesViewsets(viewsets.ModelViewSet):
@@ -41,13 +37,24 @@ class NotesViewsets(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = self.queryset.filter(user=user)
-        return queryset
+        if self.request.GET.get("shared") == "true":
+            queryset = Note.objects.all()
+            if self.request.GET.get("archive") == "true":
+                queryset = queryset.filter(shared_with=user).filter(archive=True)
+                return queryset
+            elif self.request.GET.get("archive") == "false":
+                queryset = queryset.filter(shared_with=user).filter(archive=False)
+                return queryset
+            else:
+                queryset = queryset.filter(shared_with=user)
+                return queryset
 
-    @action(detail=False, methods=["GET"], name="getShared")
-    def shared(self, request):
-        queryset = Note.objects.all()
-        curr_user = request.user
-        queryset = queryset.filter(shared_with=curr_user)
-        data = serializers.serialize("json", queryset)
-        return HttpResponse(data, content_type="application/json")
+        elif self.request.GET.get("archive") == "true":
+            queryset = self.queryset.filter(user=user).filter(archive=True)
+            return queryset
+        elif self.request.GET.get("archive") == "false":
+            queryset = self.queryset.filter(user=user).filter(archive=False)
+            return queryset
+        else:
+            queryset = self.queryset.filter(user=user)
+            return queryset
