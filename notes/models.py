@@ -29,6 +29,9 @@ class Note(AbstractClass):
         User, related_name="Shared_notes_user", blank=True
     )
 
+    class Meta:
+        ordering = ["id"]
+
     def __str__(self):
         return self.text + "  " + self.user.username
 
@@ -44,6 +47,9 @@ class Comment(AbstractClass):
         Note, on_delete=models.CASCADE, null=True, related_name="comments"
     )
     text = models.CharField(max_length=127, default=" ", null=True)
+
+    class Meta:
+        ordering = ["id"]
 
     def __str__(self):
         return str(self.user.id) + " " + self.text

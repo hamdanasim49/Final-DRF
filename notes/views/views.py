@@ -1,5 +1,4 @@
 from rest_framework.response import Response
-
 from ..models import Note, NoteVersion, Comment
 from ..serializers.serializers import (
     NoteSerializer,
@@ -11,7 +10,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import viewsets, serializers
 from rest_framework import permissions, filters, mixins
 from rest_framework.pagination import PageNumberPagination
-from notes.permissions.permissions import UserPermission
+from notes.permissions.permissions import UserPermission, SharedPermission
 from notes.filters.filters import NotesArchiveFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
