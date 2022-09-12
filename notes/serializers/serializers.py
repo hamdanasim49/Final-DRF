@@ -1,8 +1,11 @@
-from rest_framework.pagination import PageNumberPagination
 from django.db import models
-from ..models import Note, NoteVersion, Comment
-from users.models import User
 from rest_framework import serializers
+from rest_framework.pagination import PageNumberPagination
+
+from ..models import Comment
+from ..models import Note
+from ..models import NoteVersion
+from users.models import User
 from users.serializers.serializers import UserSerializer
 
 
@@ -69,11 +72,10 @@ class NoteSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         if representation["comments"]:
             if len(representation["comments"]) > 1:
-                last_comment = representation["comments"][
-                    len(representation["comments"]) - 1
-                ]
-                representation["comments"] = []
-                representation["comments"].append(last_comment)
+                last_comment = representation["comments"][-1]
+                representation.pop("comments")
+                representation["comments"] = last_comment
+
         return representation
 
 
