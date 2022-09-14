@@ -1,8 +1,9 @@
 from django.db import models
+
 from users.models import User
 
 
-class AbstractClass(models.Model):
+class AbstractModel(models.Model):
     """
     An abstract class that will contain 2 attributes that are date created and
     date updated
@@ -15,16 +16,16 @@ class AbstractClass(models.Model):
         abstract = True
 
 
-class Note(AbstractClass):
+class Note(AbstractModel):
     """
     This class is Notes model which will be the information that we
     will be storing about notes in our db
     """
 
-    title = models.CharField(max_length=31, default=" ")
-    text = models.CharField(max_length=63)
+    title = models.CharField(max_length=31)
+    text = models.TextField()
     archive = models.BooleanField(default=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     shared_with = models.ManyToManyField(
         User, related_name="Shared_notes_user", blank=True
     )
@@ -36,17 +37,15 @@ class Note(AbstractClass):
         return self.text + "  " + self.user.username
 
 
-class Comment(AbstractClass):
+class Comment(AbstractModel):
     """
     This class is for Comment model which will be the info that we will store in our
     database, it will have foreign key for user and note as well as body of content
     """
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    note = models.ForeignKey(
-        Note, on_delete=models.CASCADE, null=True, related_name="comments"
-    )
-    text = models.CharField(max_length=127, default=" ", null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    note = models.ForeignKey(Note, on_delete=models.CASCADE, related_name="comments")
+    text = models.TextField()
 
     class Meta:
         ordering = ["id"]
@@ -55,7 +54,7 @@ class Comment(AbstractClass):
         return str(self.user.id) + " " + self.text
 
 
-class NoteVersion(AbstractClass):
+class NoteVersion(AbstractModel):
     """
     This model is used to store all the versions of a specific note.
     versions will basically be history of the edits performed on the Note model
@@ -63,7 +62,7 @@ class NoteVersion(AbstractClass):
 
     note_id = models.ForeignKey(Note, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
-    text = models.CharField(max_length=255)
+    text = models.TextField()
     edited_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):

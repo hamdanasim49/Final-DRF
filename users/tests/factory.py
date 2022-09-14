@@ -1,6 +1,9 @@
 from factory.django import DjangoModelFactory
-from factory import Faker
+from faker import Factory
+
 from users.models import User
+
+faker = Factory.create()
 
 
 class UserFactory(DjangoModelFactory):
@@ -9,7 +12,7 @@ class UserFactory(DjangoModelFactory):
     class Meta:
         model = User
 
-    email = "test@test.com"
-    first_name = "Dummy"
-    last_name = "Name"
-    username = "dummyname"
+    email = faker.email()
+    first_name = faker.name()
+    last_name = faker.name()
+    username = faker.profile(fields=["username"])["username"]

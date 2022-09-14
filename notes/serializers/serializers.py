@@ -5,11 +5,12 @@ from rest_framework.pagination import PageNumberPagination
 from ..models import Comment
 from ..models import Note
 from ..models import NoteVersion
+from notes import constant
 from users.models import User
 from users.serializers.serializers import UserSerializer
 
 
-class CommentOneSerializer(serializers.ModelSerializer):
+class SingleCommentSerializer(serializers.ModelSerializer):
     """
     Serializer for Comment model, It is another serializer that will just display
     limited data
@@ -27,7 +28,7 @@ class NoteSerializer(serializers.ModelSerializer):
     operations and serializing the data
     """
 
-    comments = CommentOneSerializer(many=True, read_only=True)
+    comments = SingleCommentSerializer(many=True, read_only=True)
 
     user = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(), default=serializers.CurrentUserDefault()
@@ -44,6 +45,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "text",
             "shared_with",
             "comments",
+            "archive",
         ]
         indexes = [
             models.Index(fields=["date_updated", "-date_created"]),
@@ -52,14 +54,16 @@ class NoteSerializer(serializers.ModelSerializer):
         ordering = ["-id"]
 
     def update(self, instance, validated_data):
-        NoteVersion.objects.create(
-            note_id=instance,
-            title=instance.title,
-            text=instance.text,
-            edited_by=self.context["request"].user,
-            date_created=instance.date_created,
-            date_updated=instance.date_updated,
-        )
+        if self.context["request"] and self.context["request"].user:
+            user = self.context["request"].user
+            NoteVersion.objects.create(
+                note_id=instance,
+                title=instance.title,
+                text=instance.text,
+                edited_by=user,
+                date_created=instance.date_created,
+                date_updated=instance.date_updated,
+            )
 
         return super().update(instance, validated_data)
 
@@ -70,12 +74,9 @@ class NoteSerializer(serializers.ModelSerializer):
         """
 
         representation = super().to_representation(instance)
-        if representation["comments"]:
-            if len(representation["comments"]) > 1:
-                last_comment = representation["comments"][-1]
-                representation.pop("comments")
-                representation["comments"] = last_comment
-
+        representation["comments"] = CommentSerializer(
+            instance.comments.all().last()
+        ).data
         return representation
 
 
@@ -94,7 +95,7 @@ class ObjectNoteSerializer(serializers.ModelSerializer):
 
     def paginated_comments(self, obj):
         paginator = PageNumberPagination()
-        paginator.page_size = 10
+        paginator.page_size = constant.PAGE_SIZE
         queryset = obj.comments.all()
         result_page = paginator.paginate_queryset(queryset, self.context["request"])
         data = CommentSerializer(result_page, many=True)
@@ -119,11 +120,11 @@ class CommentSerializer(serializers.ModelSerializer):
     the comments of a particular note
     """
 
+    user = UserSerializer(read_only=True)
+
     class Meta:
         model = Comment
         fields = "__all__"
-        note = NoteSerializer()
-        user = UserSerializer()
         ordering = ["-id"]
 
     def create(self, validated_data):

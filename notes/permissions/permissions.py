@@ -16,5 +16,4 @@ class UserPermission(permissions.BasePermission):
 
 class SharedPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        print("Allo", obj)
         return True

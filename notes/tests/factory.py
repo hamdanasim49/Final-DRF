@@ -1,6 +1,10 @@
 from factory.django import DjangoModelFactory
+from faker import Factory
+
 from notes.models import Note
 from users.tests.factory import UserFactory
+
+faker = Factory.create()
 
 
 class NoteFactory(DjangoModelFactory):
@@ -9,5 +13,5 @@ class NoteFactory(DjangoModelFactory):
     class Meta:
         model = Note
 
-    title = "This is a test title"
-    text = "This is a test text"
+    title = faker.text()
+    text = faker.text()

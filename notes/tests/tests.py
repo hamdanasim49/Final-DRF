@@ -1,9 +1,11 @@
-from users.models import User
+from faker import Factory
 from rest_framework import status
-from rest_framework.test import APITestCase
-from users.tests.tests import AuthenticationTestCase
+
 from .factory import NoteFactory
-from rest_framework_simplejwt.tokens import RefreshToken
+from users.models import User
+from users.tests.tests import AuthenticationTestCase
+
+faker = Factory.create()
 
 
 class NotesCrudTestCase(AuthenticationTestCase):
@@ -29,7 +31,11 @@ class NotesCrudTestCase(AuthenticationTestCase):
             "last_name": "XYZ",
         }
 
-        self.response1 = self.client.post("/register", self.data1)
+        User.objects.create(
+            username=faker.profile(fields=["username"])["username"],
+            password=faker.password(),
+            email=faker.email(),
+        )
 
     def test_create_note(self):
         """
@@ -37,20 +43,19 @@ class NotesCrudTestCase(AuthenticationTestCase):
         It is checking if the note ie being created correctly.
         """
 
-        data = {"title": "test note", "text": "this is a test note"}
-
+        data = {"title": faker.name(), "text": faker.text()}
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["title"], data["title"])
         self.assertEqual(response.data["text"], data["text"])
 
-    def test_create_note_bad(self):
+    def test_create_note_failure(self):
         """
         This test is used to ensure that wrong data passed to the create api doesn't
         create the note object. For the test we are not passing the title field in the data
         """
 
-        data = {"text": "this is a test note"}
+        data = {"text": faker.text()}
         response = self.client.post(self.url, data=data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data["title"][0].title(), "This Field Is Required.")
@@ -75,7 +80,7 @@ class NotesCrudTestCase(AuthenticationTestCase):
         self.assertEqual(response.data["title"], self.note.title)
         self.assertEqual(response.data["text"], self.note.text)
 
-    def test_get_note_bad(self):
+    def test_get_note_failure(self):
         """
         This test is used to check when we retrieve data of a particular note with
         an ID
@@ -91,7 +96,7 @@ class NotesCrudTestCase(AuthenticationTestCase):
         response = self.client.delete("/notes/1/")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-    def test_delete_note_bad(self):
+    def test_delete_note_failure(self):
         """This test is for checking if delete a note that does not exist"""
 
         response = self.client.delete("/notes/5/")
@@ -107,27 +112,17 @@ class NotesCrudTestCase(AuthenticationTestCase):
         response = self.client.patch("/notes/1/", data=data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_update_note_bad(self):
+    def test_update_note_failure(self):
         """
         test for: update_note api
         purpose: checks if the data is updated for a specific note correctly
         """
-        data = {"title": "updated data", "text": "the data is updated"}
+        data = {"title": faker.text(), "text": faker.text()}
         response = self.client.patch(
             "/notes/25/", data=data
         )  # The note_id passed in the url is incorrect
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data["detail"].title(), "Not Found.")
-
-    def test_shared_to_bad(self):
-        """
-        This test is used to check if we try to share a note with a user that
-        does not exist. if a user does not exist it will returnn 400 bad request error
-        """
-
-        shared_with = {"shared_with": "4"}
-        response = self.client.patch("/notes/1/", data=shared_with)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_shared_to(self):
         """
@@ -139,23 +134,33 @@ class NotesCrudTestCase(AuthenticationTestCase):
         response = self.client.patch("/notes/1/", data=shared_with)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_shared_to_failure(self):
+        """
+        This test is used to check if we try to share a note with a user that
+        does not exist. if a user does not exist it will returnn 400 failure request error
+        """
+
+        shared_with = {"shared_with": "4"}
+        response = self.client.patch("/notes/1/", data=shared_with)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_add_comment(self):
         """
         This test is the positive test for adding a comment to a note,
         it will return 200 OK if the note exists
         """
 
-        body = {"note": "1", "text": "A random comment"}
+        body = {"note": "1", "text": faker.text()}
         response = self.client.post("/comments/", data=body)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_add_comment_bad(self):
+    def test_add_comment_failure(self):
         """
         This test is the negative test for adding a comment to a note that
-        does not exist, it will return 400 BAD if the note exists
+        does not exist, it will return 400 failure if the note exists
         """
 
-        body = {"note": "3", "text": "A random comment"}
+        body = {"note": "3", "text": faker.text()}
         response = self.client.post("/comments/", data=body)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
