@@ -1,7 +1,5 @@
 from django_filters import rest_framework as rest_filters
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
-from rest_framework import mixins
 from rest_framework import permissions
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -15,7 +13,6 @@ from ..serializers.serializers import CommentSerializer
 from ..serializers.serializers import NoteSerializer
 from ..serializers.serializers import NoteVersionSerializer
 from ..serializers.serializers import ObjectNoteSerializer
-from notes.filters.filters import NotesShareFilter
 from notes.permissions.permissions import UserPermission
 from project import utilities
 
@@ -39,8 +36,6 @@ class NotesViewsets(viewsets.ModelViewSet):
     ]
     filterset_fields = ("archive",)
     search_fields = ["text"]
-
-    filter_class = NotesShareFilter
 
     def get_serializer_class(self):
         if self.action == "retrieve":

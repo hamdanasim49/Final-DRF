@@ -54,7 +54,7 @@ class NoteSerializer(serializers.ModelSerializer):
         ordering = ["-id"]
 
     def update(self, instance, validated_data):
-        if self.context["request"] and self.context["request"].user:
+        if self.context.get("request") != None and self.context["request"].user:
             user = self.context["request"].user
             NoteVersion.objects.create(
                 note_id=instance,
@@ -64,8 +64,11 @@ class NoteSerializer(serializers.ModelSerializer):
                 date_created=instance.date_created,
                 date_updated=instance.date_updated,
             )
-
-        return super().update(instance, validated_data)
+            return super().update(instance, validated_data)
+        else:
+            raise serializers.ValidationError(
+                {"request": "Context have no key named request"}
+            )
 
     def to_representation(self, instance):
         """

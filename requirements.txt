@@ -1,6 +1,7 @@
 asgiref==3.5.2
 dj-database-url==1.0.0
 Django==4.1
+django-env==0.2.1
 django-factory-boy==1.0.0
 django-filter==22.1
 django-on-heroku==1.1.2
