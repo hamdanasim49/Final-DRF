@@ -70,42 +70,41 @@ class NoteSerializer(serializers.ModelSerializer):
         ordering = ["-id"]
 
     def create(self, validated_data):
-        if self.context.get("request") is not None and self.context["request"].user:
-            tag_name = NoteSerializer.create_tags(validated_data)
-            note = Note.objects.create(
-                text=validated_data["text"],
-                title=validated_data["title"],
-                user=self.context["request"].user,
-            )
-            note.tags.set(tag_name)
-            note.save()
-            return note
-        else:
+        if self.context.get("request") is None and not self.context["request"].user:
             raise serializers.ValidationError(
                 {"request": "Context have no key named request"}
             )
 
+        tag_name = NoteSerializer.create_tags(validated_data)
+        note = Note.objects.create(
+            text=validated_data["text"],
+            title=validated_data["title"],
+            user=self.context["request"].user,
+        )
+        note.tags.set(tag_name)
+        note.save()
+        return note
+
     def update(self, instance, validated_data):
-        if self.context.get("request") is not None and self.context["request"].user:
-            user = self.context["request"].user
-            if "tags" in validated_data:
-                tag_name = NoteSerializer.create_tags(validated_data)
-                instance.tags.set(tag_name)
-                validated_data.pop("tags")
-                instance.save()
-            NoteVersion.objects.create(
-                note_id=instance,
-                title=instance.title,
-                text=instance.text,
-                edited_by=user,
-                date_created=instance.date_created,
-                date_updated=instance.date_updated,
-            )
-            return super().update(instance, validated_data)
-        else:
+        if self.context.get("request") is None and not self.context["request"].user:
             raise serializers.ValidationError(
                 {"request": "Context have no key named request"}
             )
+        user = self.context["request"].user
+        if "tags" in validated_data:
+            tag_name = NoteSerializer.create_tags(validated_data)
+            instance.tags.set(tag_name)
+            validated_data.pop("tags")
+            instance.save()
+        NoteVersion.objects.create(
+            note_id=instance,
+            title=instance.title,
+            text=instance.text,
+            edited_by=user,
+            date_created=instance.date_created,
+            date_updated=instance.date_updated,
+        )
+        return super().update(instance, validated_data)
 
     def to_representation(self, instance):
         """

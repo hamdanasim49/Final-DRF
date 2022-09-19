@@ -1,19 +1,13 @@
-from django_filters import BooleanFilter
-from django_filters import CharFilter
-from django_filters import FilterSet
-from django_filters import rest_framework as rest_filters
-
-from notes.models import Note
+from django_filters import rest_framework as filters
 
 
-class NotesShareFilter(rest_filters.FilterSet):
-    is_shared = BooleanFilter(name="shared_with", method="filter_is_shared")
+class NotesFilter(filters.FilterSet):
+    shared = filters.BooleanFilter(method="shared_filter")
 
-    class Meta:
-        model = Note
-        fields = [
-            "shared_with",
-        ]
-
-    def filter_is_shared(self, queryset, name, value):
-        return queryset
+    def shared_filter(self, queryset, name, value):
+        if value:
+            queryset = self.queryset.filter(shared_with=self.request.user)
+            return queryset
+        else:
+            queryset = self.queryset.filter(user=self.request.user)
+            return queryset
