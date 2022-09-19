@@ -5,6 +5,7 @@ from rest_framework.pagination import PageNumberPagination
 from ..models import Comment
 from ..models import Note
 from ..models import NoteVersion
+from ..models import Tag
 from notes import constant
 from users.models import User
 from users.serializers.serializers import UserSerializer
@@ -22,6 +23,17 @@ class SingleCommentSerializer(serializers.ModelSerializer):
         ordering = ["-id"]
 
 
+class TagSerializer(serializers.ModelSerializer):
+    """
+    A serializer for tag, it will just be used to serialize the
+    tag objects of a note
+    """
+
+    class Meta:
+        model = Tag
+        fields = "__all__"
+
+
 class NoteSerializer(serializers.ModelSerializer):
     """
     Serializer for Notes and all of its CRUD
@@ -32,6 +44,9 @@ class NoteSerializer(serializers.ModelSerializer):
 
     user = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(), default=serializers.CurrentUserDefault()
+    )
+    tags = serializers.ListSerializer(
+        child=serializers.CharField(min_length=0, max_length=32)
     )
 
     class Meta:
@@ -46,6 +61,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "shared_with",
             "comments",
             "archive",
+            "tags",
         ]
         indexes = [
             models.Index(fields=["date_updated", "-date_created"]),
@@ -53,9 +69,30 @@ class NoteSerializer(serializers.ModelSerializer):
         extra_kwargs = {"title": {"required": True}, "text": {"required": True}}
         ordering = ["-id"]
 
+    def create(self, validated_data):
+        if self.context.get("request") is not None and self.context["request"].user:
+            tag_name = NoteSerializer.create_tags(validated_data)
+            note = Note.objects.create(
+                text=validated_data["text"],
+                title=validated_data["title"],
+                user=self.context["request"].user,
+            )
+            note.tags.set(tag_name)
+            note.save()
+            return note
+        else:
+            raise serializers.ValidationError(
+                {"request": "Context have no key named request"}
+            )
+
     def update(self, instance, validated_data):
-        if self.context.get("request") != None and self.context["request"].user:
+        if self.context.get("request") is not None and self.context["request"].user:
             user = self.context["request"].user
+            if "tags" in validated_data:
+                tag_name = NoteSerializer.create_tags(validated_data)
+                instance.tags.set(tag_name)
+                validated_data.pop("tags")
+                instance.save()
             NoteVersion.objects.create(
                 note_id=instance,
                 title=instance.title,
@@ -81,6 +118,23 @@ class NoteSerializer(serializers.ModelSerializer):
             instance.comments.all().last()
         ).data
         return representation
+
+    def create_tags(validated_data):
+        """
+        create_tags : Create tags in db if any particular tag does not exists
+        """
+        tags_in_db = list(
+            Tag.objects.filter(name__in=validated_data["tags"]).values_list(
+                "name", flat=True
+            )
+        )
+        tags_not_in_db = list(set(validated_data["tags"]) - set(tags_in_db))
+        tags_list = [Tag(name=tag) for tag in tags_not_in_db]
+        Tag.objects.bulk_create(tags_list, ignore_conflicts=True)
+        tag_names = Tag.objects.filter(name__in=validated_data["tags"]).values_list(
+            "name", flat=True
+        )
+        return tag_names
 
 
 class ObjectNoteSerializer(serializers.ModelSerializer):

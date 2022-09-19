@@ -16,6 +16,15 @@ class AbstractModel(models.Model):
         abstract = True
 
 
+class Tag(models.Model):
+    """This class is a model for tags in our notes"""
+
+    name = models.CharField(max_length=32, primary_key=True, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Note(AbstractModel):
     """
     This class is Notes model which will be the information that we
@@ -29,6 +38,7 @@ class Note(AbstractModel):
     shared_with = models.ManyToManyField(
         User, related_name="Shared_notes_user", blank=True
     )
+    tags = models.ManyToManyField(Tag, related_name="tags", blank=True)
 
     class Meta:
         ordering = ["id"]
