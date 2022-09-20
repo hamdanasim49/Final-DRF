@@ -1,16 +1,21 @@
-from rest_framework.response import Response
-
-from ..models import Note
-from ..serializers.serializers import (
-    NoteSerializer,
-)
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework import viewsets, serializers
-from rest_framework import permissions, filters
+from django_filters import rest_framework as rest_filters
+from rest_framework import filters
+from rest_framework import permissions
+from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from ..models import Comment
+from ..models import Note
+from ..models import NoteVersion
+from ..serializers.serializers import CommentSerializer
+from ..serializers.serializers import NoteSerializer
+from ..serializers.serializers import NoteVersionSerializer
+from ..serializers.serializers import ObjectNoteSerializer
+from notes.filters.filters import NotesFilter
 from notes.permissions.permissions import UserPermission
-from notes.filters.filters import NotesArchiveFilter
-from django_filters.rest_framework import DjangoFilterBackend
+from project import utilities
 
 
 class NotesViewsets(viewsets.ModelViewSet):
@@ -19,42 +24,71 @@ class NotesViewsets(viewsets.ModelViewSet):
     the notes class.
     """
 
-    queryset = Note.objects.all()
+    queryset = Note.objects.select_related("user").prefetch_related("comments")
     authentication_classes = (JWTAuthentication,)
     serializer_class = NoteSerializer
 
     pagination_class = PageNumberPagination
     permission_classes = [UserPermission]
 
-    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    filter_backends = [
+        filters.SearchFilter,
+        rest_filters.DjangoFilterBackend,
+    ]
+    filterset_fields = ("archive",)
     search_fields = ["text"]
+    filterset_class = NotesFilter
 
-    filter_class = NotesArchiveFilter
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return ObjectNoteSerializer
+        return NoteSerializer
 
     """
-    TODO: We will move this functionality into filters
+    #TODO: We will move this functionality into filters
     """
 
     def get_queryset(self):
-        user = self.request.user
-        if self.request.GET.get("shared") == "true":
-            queryset = Note.objects.all()
-            if self.request.GET.get("archive") == "true":
-                queryset = queryset.filter(shared_with=user).filter(archive=True)
-                return queryset
-            elif self.request.GET.get("archive") == "false":
-                queryset = queryset.filter(shared_with=user).filter(archive=False)
-                return queryset
-            else:
-                queryset = queryset.filter(shared_with=user)
-                return queryset
+        queryset_current_user_notes = self.queryset.filter(user=self.request.user)
+        queryset_shared_notes = Note.objects.filter(shared_with=self.request.user)
+        queryset = (queryset_current_user_notes | queryset_shared_notes).distinct()
+        return queryset
 
-        elif self.request.GET.get("archive") == "true":
-            queryset = self.queryset.filter(user=user).filter(archive=True)
-            return queryset
-        elif self.request.GET.get("archive") == "false":
-            queryset = self.queryset.filter(user=user).filter(archive=False)
-            return queryset
-        else:
-            queryset = self.queryset.filter(user=user)
-            return queryset
+    """
+    This action will be called with the url : /notes/id/versions
+    It is responsible for showing all the versions of a note
+    """
+
+    @action(detail=True, methods=["GET"], name="versions")
+    def versions(self, request, pk=None):
+        queryset = NoteVersion.objects.all()
+        queryset = queryset.filter(note_id=pk)
+        paginator, result_page = utilities.paginate(queryset, request)
+        data = NoteVersionSerializer(result_page, many=True)
+        return paginator.get_paginated_response(data.data)
+
+    @action(detail=True, methods=["GET"], name="comments")
+    def comments(self, request, pk=None):
+        """
+        This action will be called with the url : /notes/id/comments
+        It is responsible for showing all comments of a note
+        """
+
+        queryset = Comment.objects.all()
+        queryset = queryset.filter(note=pk)
+        paginator, result_page = utilities.paginate(queryset, request)
+        data = CommentSerializer(result_page, many=True)
+        return paginator.get_paginated_response(data.data)
+
+
+class CommentsViewsets(viewsets.ModelViewSet):
+    """
+    The viewset for Comment model, it will enable us to Create, update and retrieve
+    comments for a particular note, any user with whom the note is shared can comment
+    """
+
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+    pagination_class = PageNumberPagination
+    permission_classes = [permissions.IsAuthenticated, UserPermission]

@@ -1,13 +1,13 @@
-from notes.models import Note
-from django_filters import FilterSet, BooleanFilter, CharFilter
+from django_filters import rest_framework as filters
 
 
-class NotesArchiveFilter(FilterSet):
+class NotesFilter(filters.FilterSet):
+    shared = filters.BooleanFilter(method="shared_filter")
 
-    title = CharFilter(
-        lookup_expr="iexact",
-    )
+    def shared_filter(self, queryset, name, value):
+        if value:
+            queryset = self.queryset.filter(shared_with=self.request.user)
+            return queryset
 
-    class Meta:
-        model = Note
-        fields = ["archive", "title"]
+        queryset = self.queryset.filter(user=self.request.user)
+        return queryset

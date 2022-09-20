@@ -9,9 +9,8 @@ https://docs.djangoproject.com/en/4.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
-
-from pathlib import Path
 import os
+from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,13 +20,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-vd(#3v7cr1sc^zjppqb#jn20x-v$#x0swj5vqrnq_&_rb009(!"
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY", "django-insecure-vd(#3v7cr1sc^zjppqb#jn20x-v$#x0swj5vqrnq_&_rb009(!"
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = str(os.environ.get("DEBUG")) == "1"
 
 ALLOWED_HOSTS = []
 
+if not DEBUG:
+    ALLOWED_HOSTS += os.environ.get("ALLOWED_HOST")
 
 # Application definition
 
@@ -41,9 +44,9 @@ INSTALLED_APPS = [
     "users",
     "notes",
     "rest_framework",
+    "django_filters",
     "rest_framework.authtoken",
     "rest_framework_simplejwt",
-    "django_filters",
 ]
 
 MIDDLEWARE = [
@@ -54,6 +57,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+MIDDLEWARE += [
+    "querycount.middleware.QueryCountMiddleware",
 ]
 
 ROOT_URLCONF = "project.urls"
@@ -134,5 +141,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 10,
+    "PAGE_SIZE": 5,
 }

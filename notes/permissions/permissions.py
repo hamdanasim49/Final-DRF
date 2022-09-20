@@ -12,3 +12,8 @@ class UserPermission(permissions.BasePermission):
             return False
         else:
             return True
+
+
+class SharedPermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return True

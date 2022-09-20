@@ -1,0 +1,567 @@
+{
+	"info": {
+		"_postman_id": "9d623db2-2654-4173-b9b4-e1f1ce36857c",
+		"name": "Notes App",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22981644"
+	},
+	"item": [
+		{
+			"name": "register user",
+			"item": [
+				{
+					"name": "register_api",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"hamdan\",\n    \"password\": \"pass7890\",\n    \"email\": \"hamdan@gmail.com\",\n    \"first_name\": \"ABC\",\n    \"last_name\": \"XYZ\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/register",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"register"
+							]
+						},
+						"description": "In this api call you can register a new user. you can see the required data in the json body"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Login user",
+			"item": [
+				{
+					"name": "login_api",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody)",
+									"postman.setEnvironmentVariable(\"jwt\", jsonData.access)"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "TOKEN 693f79e69c061c7c48634fe6ee2e77f6cd509bff",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"ahmad\",\n    \"password\": \"pass7890\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/login",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"login"
+							]
+						},
+						"description": "This api will take the username and password as body and will return the token as response"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Notes CRUD",
+			"item": [
+				{
+					"name": "get_all_notes_of_current_user_api",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/notes/",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"notes",
+								""
+							],
+							"query": [
+								{
+									"key": "archive",
+									"value": "false",
+									"disabled": true
+								},
+								{
+									"key": "shared",
+									"value": "true",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"disabled": true
+								}
+							]
+						},
+						"description": "This is the retrieve api for the notes  \nThis will return all the notes that were written by this particular user"
+					},
+					"response": []
+				},
+				{
+					"name": "get_one_notes_of_current_user_api",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/notes/1/",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"notes",
+								"1",
+								""
+							],
+							"query": [
+								{
+									"key": "archive",
+									"value": "false",
+									"disabled": true
+								},
+								{
+									"key": "shared",
+									"value": "false",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"disabled": true
+								}
+							]
+						},
+						"description": "This is the retrieve api for the notes  \nThis will return the note with the specific id that is passed in the url"
+					},
+					"response": []
+				},
+				{
+					"name": "search_note",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/notes/?search=killer",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"notes",
+								""
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "killer"
+								}
+							]
+						},
+						"description": "This is the search api for the notes  \nthis will return the notes that have the search parameter text"
+					},
+					"response": []
+				},
+				{
+					"name": "add_note_to_current_user_api",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\" : \"some new note\",\n    \"text\": \"some new note\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/notes/",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"notes",
+								""
+							]
+						},
+						"description": "The Api call to add the note for the user that is logged in  \nsimply send text in the body call and it will be added"
+					},
+					"response": []
+				},
+				{
+					"name": "Archive_note",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "archive",
+									"value": "true",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseURL}}/notes/1/",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"notes",
+								"1",
+								""
+							],
+							"query": [
+								{
+									"key": "archive",
+									"value": "true",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Archive a note by calling this Api request. See the url that you have to give the note Id and then archive it  \nIt will unarchive the note if it was archived previously  \nand archive if it was not"
+					},
+					"response": []
+				},
+				{
+					"name": "update_note",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\" : \"testing something else\",\n    \"text\" : \"testing something else\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/notes/7/",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"notes",
+								"7",
+								""
+							],
+							"query": [
+								{
+									"key": "shared",
+									"value": "true",
+									"disabled": true
+								}
+							]
+						},
+						"description": "This request is used for updating the text for a note  \nRemember you can see the id of a note in get request  \nSo please use a valid id with trailing backslash /  \nIn body you have to give the updated text"
+					},
+					"response": []
+				},
+				{
+					"name": "Share_to",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"shared_with\" : [\"2\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/notes/7/",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"notes",
+								"7",
+								""
+							]
+						},
+						"description": "This request is used for sharing a note with other user  \nMake sure that their is a user that is having the ID you are mentioning in the list\n\nYou can enter the ids in a list and it will be shared with all of the users in the list"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete_note",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/notes/2/",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"notes",
+								"2",
+								""
+							]
+						},
+						"description": "This request is used for deleting the text for a note  \nRemember you can see the id of a note in get request  \nSo please use a valid id with trailing backslash /"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "get_version",
+			"item": [
+				{
+					"name": "get_version",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/notes/7/versions",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"notes",
+								"7",
+								"versions"
+							]
+						},
+						"description": "This api will return all the versions of the note whose ID is passed in the url. It will not contain current state of the note instead will have previous history of them"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "comment_CRUD",
+			"item": [
+				{
+					"name": "add_comment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"note\" : \"2\",\n    \"text\" : \"Wow what a post\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/comments/",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"comments",
+								""
+							]
+						},
+						"description": "this API hit will add comment to a particular note.\n\nSee the body of the API, you will have to enter a valid note ID and the text as the comment."
+					},
+					"response": []
+				},
+				{
+					"name": "get_comment",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/notes/1/comments",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"notes",
+								"1",
+								"comments"
+							]
+						},
+						"description": "This API will be used to see all the comments of a particular note whose ID will be given in URL. It will return the comments in Paginated way"
+					},
+					"response": []
+				},
+				{
+					"name": "update_comment",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"text\": \"I am updating the comment\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/comments/3/",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"comments",
+								"3",
+								""
+							]
+						},
+						"description": "An API that will allow us to update the text of comment. The ID of comment will be passed in the URL"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
