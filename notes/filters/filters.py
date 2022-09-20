@@ -8,6 +8,6 @@ class NotesFilter(filters.FilterSet):
         if value:
             queryset = self.queryset.filter(shared_with=self.request.user)
             return queryset
-        else:
-            queryset = self.queryset.filter(user=self.request.user)
-            return queryset
+
+        queryset = self.queryset.filter(user=self.request.user)
+        return queryset

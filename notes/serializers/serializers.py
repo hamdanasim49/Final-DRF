@@ -70,6 +70,11 @@ class NoteSerializer(serializers.ModelSerializer):
         ordering = ["-id"]
 
     def create(self, validated_data):
+        """
+        This is the create function of serializer in this we first check whether our user exists
+        if it do exists then we get the tag object list and assign corresponding values
+        """
+
         if self.context.get("request") is None and not self.context["request"].user:
             raise serializers.ValidationError(
                 {"request": "Context have no key named request"}
@@ -86,6 +91,12 @@ class NoteSerializer(serializers.ModelSerializer):
         return note
 
     def update(self, instance, validated_data):
+        """
+        This is the update function of serializer in this we first check whether our user exists
+        if it do exists then we get the tag object list and assign corresponding values
+        We also create an object for versioning of note in this
+        """
+
         if self.context.get("request") is None and not self.context["request"].user:
             raise serializers.ValidationError(
                 {"request": "Context have no key named request"}
@@ -101,8 +112,6 @@ class NoteSerializer(serializers.ModelSerializer):
             title=instance.title,
             text=instance.text,
             edited_by=user,
-            date_created=instance.date_created,
-            date_updated=instance.date_updated,
         )
         return super().update(instance, validated_data)
 
